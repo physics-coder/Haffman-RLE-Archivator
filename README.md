@@ -1,0 +1,1 @@
+# Haffman-RLE-Archivator
