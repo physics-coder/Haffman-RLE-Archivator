@@ -55,7 +55,7 @@ class RLE():
             ans += self.a
             return ans
     def read_data(self, file):
-        with open(f"{file}.ultarc", "rb") as f:
+        with open(file, "rb") as f:
             f.read(7)
             self.iterations = struct.unpack("<i", f.read(4))[0]
             data = []

@@ -83,6 +83,6 @@ class Huffman():
         return data
 
     def unarchive(self, archive_name):
-        data = self.read_data(f"{archive_name}.ultarc")
+        data = self.read_data(archive_name)
         return self.huffman_decode(data[0], data[1])
 
