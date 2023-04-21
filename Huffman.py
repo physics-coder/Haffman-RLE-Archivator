@@ -24,11 +24,11 @@ class Huffman():
 
         huff = dict(sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p)))
         encoded_data = ''.join([huff[byte] for byte in data])
-        print(encoded_data)
         return encoded_data, huff
 
     def read_data(self, file):
         with open(file, "rb") as f:
+            f.read(7)
             a = struct.unpack("<i", f.read(4))[0]
             length = struct.unpack("<i", f.read(4))[0]
             binary_data_read = f.read(length)
@@ -64,21 +64,20 @@ class Huffman():
                     break
         return decoded_data
 
-    def archive(self, data, name):
-        with open(f"{name}.ultarc", "wb") as f:
-            huff = self.huffman_encode(data.read())
-            my_dict = huff[1]
-            binary_string = huff[0]
-            binary_data = bytes([int(binary_string[i:i + 8], 2) for i in range(0, len(binary_string), 8)])
-            a = len(binary_string) % 8
-            f.write(struct.pack("<i", a))
-            f.write(struct.pack("<i", len(binary_data)))
-            f.write(binary_data)
-            pickle.dump(my_dict, f)
+    def archive(self, data):
+        huff = self.huffman_encode(data)
+        my_dict = huff[1]
+        binary_string = huff[0]
+        binary_data = bytes([int(binary_string[i:i + 8], 2) for i in range(0, len(binary_string), 8)])
+        a = len(binary_string) % 8
+        data = b''
+        data += struct.pack("<i", a)
+        data += struct.pack("<i", len(binary_data))
+        data += binary_data
+        data += pickle.dumps(my_dict)
+        return data
 
-    def unarchive(self, archive_name, output_name):
-        with open(f"{output_name}.txt", "wb") as f:
-            data = self.read_data(f"{archive_name}.ultarc")
-            print(data[0])
-            f.write(self.huffman_decode(data[0], data[1]))
+    def unarchive(self, archive_name):
+        data = self.read_data(f"{archive_name}.ultarc")
+        return self.huffman_decode(data[0], data[1])
 

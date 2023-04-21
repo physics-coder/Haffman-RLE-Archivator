@@ -31,17 +31,18 @@ class RLE():
             count = item[1]
             data += char * count
         return data
-    def archive(self, data, name):
-        a = data.read()
+    def archive(self, data):
+        a = data
         rle = self.rle_encode(a)
-        print(rle)
-        with open(f"{name}.ultarc", "wb") as f:
-            f.write(struct.pack("<i", len(rle)))
-            for i in range(len(rle)):
-                f.write(struct.pack("<b", rle[i][1]))
-                f.write(rle[i][0])
+        data = b''
+        data+=struct.pack("<i", len(rle))
+        for i in range(len(rle)):
+            data+=struct.pack("<b", rle[i][1])
+            data+=rle[i][0]
+        return data
     def read_data(self, file):
         with open(f"{file}.ultarc", "rb") as f:
+            f.read(7)
             data = []
             l = struct.unpack("<i", f.read(4))[0]
             for i in range(l):
@@ -49,9 +50,8 @@ class RLE():
                 data.append((f.read(1), a))
             return data
 
-    def unarchive(self, archive_name, output_name):
-        with open(f"{output_name}.txt", "wb") as f:
-            f.write(self.rle_decode(self.read_data(archive_name)))
+    def unarchive(self, archive_name):
+        return self.rle_decode(self.read_data(archive_name))
 
 
 
