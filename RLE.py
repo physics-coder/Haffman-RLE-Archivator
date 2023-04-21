@@ -14,7 +14,7 @@ class RLE():
                 count = 1
                 prev_byte = byte
             else:
-                if count <= 255:
+                if count < 255:
                     count += 1
                 else:
                     entry = (prev_byte, count)
@@ -37,7 +37,7 @@ class RLE():
         data = b''
         data+=struct.pack("<i", len(rle))
         for i in range(len(rle)):
-            data+=struct.pack("<b", rle[i][1])
+            data+=struct.pack("<B", rle[i][1])
             data+=rle[i][0]
         return data
     def read_data(self, file):
@@ -46,7 +46,7 @@ class RLE():
             data = []
             l = struct.unpack("<i", f.read(4))[0]
             for i in range(l):
-                a = struct.unpack("<b", f.read(1))[0]
+                a = struct.unpack("<B", f.read(1))[0]
                 data.append((f.read(1), a))
             return data
 

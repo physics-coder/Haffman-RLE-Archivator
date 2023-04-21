@@ -12,7 +12,7 @@ def check_file_extension(file_bytes):
         return '.jpg'
     elif 'PNG' in file_type:
         return '.png'
-    elif 'TXT' in file_type:
+    elif 'text' in file_type:
         return '.txt'
     elif 'MP3' in file_type:
         return '.mp3'
@@ -30,17 +30,18 @@ def callback():
             signature = data[:7]
             unarchived = b''
             if signature == b'ACEARCH':
+                print("huff")
                 unarchived = huffer.unarchive("output")
             elif signature == b'ACEARCR':
                 unarchived = rle.unarchive("output")
             else:
-                pass
+                print("What da heeeel")
             extension = check_file_extension(unarchived)
             with open (f"unarchived{extension}", "wb") as f:
                 f.write(unarchived)
         else:
-            huff_data = huffer.archive(data[7:])
-            rle_data = rle.archive(data[7:])
+            huff_data = huffer.archive(data)
+            rle_data = rle.archive(data)
             with open("output.ultarc", "wb") as f:
                 f.write(b'ACEARC')
                 if len(huff_data) < len(rle_data):

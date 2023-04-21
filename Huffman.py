@@ -13,24 +13,29 @@ class Huffman():
         heap = [[weight, [byte, '']] for byte, weight in freq.items()]
         heapq.heapify(heap)
 
-        while len(heap) > 1:
-            lo = heapq.heappop(heap)
-            hi = heapq.heappop(heap)
-            for pair in lo[1:]:
-                pair[1] = '0' + pair[1]
-            for pair in hi[1:]:
-                pair[1] = '1' + pair[1]
-            heapq.heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
+        if len(heap) > 1:
+            while len(heap) > 1:
+                lo = heapq.heappop(heap)
+                hi = heapq.heappop(heap)
+                for pair in lo[1:]:
+                    pair[1] = '0' + pair[1]
+                for pair in hi[1:]:
+                    pair[1] = '1' + pair[1]
+                heapq.heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
+            huff = dict(sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p)))
+        else:
+            huff = {}
+            for i in freq:
+                huff[i] = '1'
 
-        huff = dict(sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p)))
         encoded_data = ''.join([huff[byte] for byte in data])
         return encoded_data, huff
 
     def read_data(self, file):
         with open(file, "rb") as f:
             f.read(7)
-            a = struct.unpack("<i", f.read(4))[0]
-            length = struct.unpack("<i", f.read(4))[0]
+            a = struct.unpack("<l", f.read(4))[0]
+            length = struct.unpack("<l", f.read(4))[0]
             binary_data_read = f.read(length)
             binary_data_read = ''.join(format(byte, '08b') for byte in binary_data_read)
             if a != 0:
@@ -71,8 +76,8 @@ class Huffman():
         binary_data = bytes([int(binary_string[i:i + 8], 2) for i in range(0, len(binary_string), 8)])
         a = len(binary_string) % 8
         data = b''
-        data += struct.pack("<i", a)
-        data += struct.pack("<i", len(binary_data))
+        data += struct.pack("<l", a)
+        data += struct.pack("<l", len(binary_data))
         data += binary_data
         data += pickle.dumps(my_dict)
         return data
