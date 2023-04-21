@@ -1,14 +1,16 @@
 import tkinter as tk
 from tkinter import filedialog as fd
 from Huffman import Huffman
+from RLE import RLE
 def callback():
     name = fd.askopenfilename()
-    with open(name, 'r') as data:
+    with open(name, 'rb') as data:
         huffer = Huffman()
+        # rle = RLE()
         if name[-3::] == "txt":
-            huffer.text_archive(data, "output")
+            huffer.archive(data, "output")
         elif name[-6::] == "ultarc":
-            huffer.text_unarchive("output", "unarchived")
+            huffer.unarchive("output", "unarchived")
         exit(0)
 
 
