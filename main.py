@@ -30,7 +30,6 @@ def callback():
             signature = data[:7]
             unarchived = b''
             if signature == b'ACEARCH':
-                print("huff")
                 unarchived = huffer.unarchive("output")
             elif signature == b'ACEARCR':
                 unarchived = rle.unarchive("output")
