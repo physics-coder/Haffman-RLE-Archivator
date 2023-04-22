@@ -16,9 +16,7 @@ f_name = tk.StringVar(root)
 
 def check_file_extension(file_bytes):
     file_type = magic.from_buffer(file_bytes)
-    if 'PDF' in file_type:
-        return '.pdf'
-    elif 'JPEG' in file_type:
+    if 'JPEG' in file_type:
         return '.jpg'
     elif 'PNG' in file_type:
         return '.png'
@@ -50,6 +48,7 @@ def rle_load():
 
 
 def unarchiver():
+    global error
     global data
     global file_name
     global name
@@ -65,14 +64,20 @@ def unarchiver():
             f.read(7)
             unarchived = f.read()
     else:
-        print("whaaat")
+        messagebox.showerror("Corrupted archive file", "The archive file has been corrupted. Please select a valid file.")
+        finished = True
+        error = True
+        return
     extension = check_file_extension(unarchived)
     if extension:
         with open(f"{file_name}{extension}", "wb") as f:
             f.write(unarchived)
         finished = True
     else:
-        print("whaaat")
+        messagebox.showwarning('Extension absense', 'The file archived is of an unknown extension, so it will be saved without one.')
+        with open(file_name, "wb") as f:
+            f.write(unarchived)
+        finished = True
     return
 
 def file_selector():
@@ -81,6 +86,8 @@ def file_selector():
     start_button.pack_forget()
     start_button.pack()
 def callback():
+    global error
+    global compress_rate
     global rle
     global data
     global finished
@@ -88,6 +95,7 @@ def callback():
     global finished
     global file_name
     global name
+    error = False
     finished = False
     text.pack()
     threading.Thread(target=load_bar).start()
@@ -127,12 +135,16 @@ def callback():
                 f.write(b'ACEARC')
                 if len(huff_data) < len(data) or len(rle_data) < len(data):
                     if len(huff_data) < len(rle_data):
+                        compress_rate = (len(data)-len(huff_data))/len(data)*100
                         f.write(b'H')
                         f.write(huff_data)
                     else:
+                        compress_rate = int((len(data) - len(rle_data)) / len(data) * 100)
                         f.write(b'R')
                         f.write(rle_data)
+
                 else:
+                    compress_rate = 0
                     f.write(b'F')
                     f.write(data)
             finished = True
@@ -165,13 +177,22 @@ list = ["       ", ".      ", "..     ", "...    ", "....   ", ".....  ", ".....
 
 
 def load_bar():
+    global compress_rate
     k = 0
     while not finished:
         k += 1
         text.config(text="Magic in proccess" + list[k % 8], fg="yellow")
         text.update()
         time.sleep(0.1)
-    text.config(text="Magic has happened!", fg="green")
+    if not error:
+        text.config(text="Magic has happened!", fg="green")
+        time.sleep(0.01)
+        if compress_rate > 0:
+            messagebox.showinfo('Archivation results',f'The file has been successfully compressed by {compress_rate} percent!')
+        else:
+            messagebox.showwarning('Archivation results', "The archivator wasn't able to reduce the file size, the archivated size remains the same.")
+    else:
+        text.config(text="Error", fg="red")
     b.focus()
     return
 
