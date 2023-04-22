@@ -2,11 +2,14 @@ import tkinter as tk
 from tkinter import *
 from tkinter import filedialog as fd
 from Huffman import Huffman
-
+import time
 import magic
+import threading
+from PIL import Image, ImageTk
 root = tk.Tk()
 root.title("Ultarc file archivator")
 f_name = tk.StringVar(root)
+
 def check_file_extension(file_bytes):
     file_type = magic.from_buffer(file_bytes)
     if 'PDF' in file_type:
@@ -23,7 +26,9 @@ def check_file_extension(file_bytes):
         return None
 
 from RLE import RLE
-def callback():
+def work():
+    global finished
+    finished = False
     if f_name.get() != '':
         file_name = f_name.get()
     else:
@@ -45,6 +50,7 @@ def callback():
             extension = check_file_extension(unarchived)
             with open (f"{file_name}{extension}", "wb") as f:
                 f.write(unarchived)
+            finished = True
         else:
             huff_data = huffer.archive(data)
             rle_data = rle.archive(data)
@@ -56,8 +62,15 @@ def callback():
                 else:
                     f.write(b'R')
                     f.write(rle_data)
+            finished = True
+def callback():
+    global finished
+    finished = False
+    t2 = threading.Thread(target=work)
+    text.pack()
+    t1.start()
+    t2.start()
 
-        exit(0)
 
 def on_entry_click(event):
     if textBox.get() == 'output':
@@ -69,11 +82,29 @@ text_label = tk.Label(root, text='Welcome to the "Ultarc" archivator! You can cl
                                  ' other file will be archivated. \n If you want to specify a particular output file name,'
                                  ' enter it in the text field below \n without the file extension.', font=('Arial', 24), padx=10, pady=30, anchor='center')
 text_label.pack()
-textBox = Entry(root, width=30, font=('Arial', 16, 'italic'), justify=CENTER, textvariable=f_name)
+frame = Frame()
+textBox = Entry(frame, width=10, font=('Arial', 16, 'italic'), justify=CENTER, textvariable=f_name)
 textBox.insert(0, "output")
 textBox.bind('<FocusIn>', on_entry_click)
-textBox.pack(side=LEFT, fill=BOTH, padx=20)
-tk.Button(root, text='Click to Open File',
-          command=callback, height=1).pack(side=RIGHT, fill=BOTH, expand=True, padx=20)
+textBox.pack(side=LEFT, padx=20, expand=True, fill=BOTH)
+tk.Button(frame, text='Click to Open File',
+          command=callback, height=1).pack(side=RIGHT, padx=20, expand=True, fill=BOTH)
+
+frame.pack(expand=True, fill=X, pady=40)
+
+text = Label(root, text="Loading", font=('Arial', 20, 'bold'), fg="yellow")
+list = ["       ", ".      ", "..     ", "...    ", "....   ", ".....  ", "...... ", "......."]
+
+def load_bar():
+    global finished
+    k = 0
+    while not finished:
+        k+=1
+        text.config(text="Loading" + list[k % 8])
+        text.update()
+        time.sleep(0.1)
+    text.config(text="Finished", fg="green")
+t1 = threading.Thread(target=load_bar)
+
 
 tk.mainloop()

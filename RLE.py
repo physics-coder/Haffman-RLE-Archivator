@@ -44,7 +44,7 @@ class RLE():
         for i in range(len(rle)):
             data += struct.pack("<B", rle[i][1])
             data += rle[i][0]
-        if len(data) < len(self.a):
+        if len(data) < len(self.a)*0.9 and self.iterations<5:
             self.a = bytes(data)
             self.length = len(rle)
             return self.archive(data)
