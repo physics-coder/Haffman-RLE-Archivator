@@ -1,13 +1,17 @@
+import threading
+import time
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog as fd
-from Huffman import Huffman
-import time
+
 import magic
-import threading
+
+from Huffman import Huffman
+
 root = tk.Tk()
 root.title("Ultarc file archivator")
 f_name = tk.StringVar(root)
+
 
 def check_file_extension(file_bytes):
     file_type = magic.from_buffer(file_bytes)
@@ -24,18 +28,26 @@ def check_file_extension(file_bytes):
     else:
         return None
 
+
 from RLE import RLE
+
+
 def huff_load():
     global huff_data
     global data
     global huffer
     huff_data = huffer.archive(data)
+    return
+
 
 def rle_load():
     global rle
     global rle_data
     global data
     rle_data = rle.archive(data)
+    return
+
+
 def unarchiver():
     global data
     global file_name
@@ -53,6 +65,13 @@ def unarchiver():
     with open(f"{file_name}{extension}", "wb") as f:
         f.write(unarchived)
     finished = True
+    return
+
+def file_selector():
+    global name
+    name = fd.askopenfilename()
+    start_button.pack_forget()
+    start_button.pack()
 def callback():
     global rle
     global data
@@ -62,25 +81,37 @@ def callback():
     global file_name
     global name
     finished = False
-    if f_name.get() != '':
-        file_name = f_name.get()
-    else:
-        file_name = "output"
-    name = fd.askopenfilename()
     text.pack()
-    t1.start()
+    threading.Thread(target=load_bar).start()
     with open(name, 'rb') as data:
         data = data.read()
         huffer = Huffman()
         rle = RLE()
         if name[-6::] == "ultarc":
+            if f_name.get() != 'Optionally enter the output file name here':
+                file_name = f_name.get()
+            else:
+                if '.' in name:
+                    file_name = f"{name.split('.')[0]}_unarchivated"
+                else:
+                    file_name = f"{name}_unarchivated"
             t2 = threading.Thread(target=unarchiver)
-            t2.start()
+            if not t2.is_alive():
+                t2.start()
         else:
+            if f_name.get() != 'Optionally enter the output file name here':
+                file_name = f_name.get()
+            else:
+                if '.' in name:
+                    file_name = f"{name.split('.')[0]}_archivated"
+                else:
+                    file_name = f"{name}_archivated"
             huffman_thread = threading.Thread(target=huff_load)
             rle_thread = threading.Thread(target=rle_load)
-            huffman_thread.start()
-            rle_thread.start()
+            if not huffman_thread.is_alive():
+                huffman_thread.start()
+            if not rle_thread.is_alive():
+                rle_thread.start()
             huffman_thread.join()
             rle_thread.join()
 
@@ -100,34 +131,37 @@ def on_entry_click(event):
         textBox.delete(0, 'end')
         textBox.config(font=('Arial', 16))
 
-text_label = tk.Label(root, text='Welcome to the "Ultarc" archivator! You can click the button below to select a file.'
-                                 '\n If you upload a .ultarc file, it will be unarchivated, any'
-                                 ' other file will be archivated. \n If you want to specify a particular output file name,'
-                                 ' enter it in the text field below \n without the file extension.', font=('Arial', 24), padx=10, pady=30, anchor='center')
+
+text_label = tk.Label(root, text='Welcome to the "Ultarc" archivator! Click the button below to select a file.', font=('Arial', 24),
+                      padx=10, pady=20, anchor='center')
 text_label.pack()
 frame = Frame()
-textBox = Entry(frame, width=10, font=('Arial', 16, 'italic'), justify=CENTER, textvariable=f_name)
-textBox.insert(0, "output")
+textBox = Entry(frame, width=14, font=('Arial', 16, 'italic'), justify=CENTER, textvariable=f_name)
+textBox.insert(0, "Optionally enter the output file name here")
 textBox.bind('<FocusIn>', on_entry_click)
 textBox.pack(side=LEFT, padx=20, expand=True, fill=BOTH)
-tk.Button(frame, text='Click to Open File',
-          command=callback, height=1).pack(side=RIGHT, padx=20, expand=True, fill=BOTH)
+b = tk.Button(frame, text='Click to Open File',
+          command=file_selector, height=1)
+b.pack(side=RIGHT, padx=20, expand=True, fill=BOTH)
 
-frame.pack(expand=True, fill=X, pady=40)
+frame.pack(expand=True, fill=X, pady=10)
+start_button = tk.Button(root, text='Start magic!',
+          command=callback, height=1, fg="purple")
 
-text = Label(root, text="Loading", font=('Arial', 20, 'bold'), fg="yellow")
+text = Label(root, text="Loading", font=('Arial', 20, 'bold'), fg="yellow", pady=20)
 list = ["       ", ".      ", "..     ", "...    ", "....   ", ".....  ", "...... ", "......."]
 
+
 def load_bar():
-    global finished
     k = 0
     while not finished:
-        k+=1
-        text.config(text="Loading" + list[k % 8])
+        k += 1
+        text.config(text="Magic in proccess" + list[k % 8], fg="yellow")
         text.update()
         time.sleep(0.1)
-    text.config(text="Finished", fg="green")
-t1 = threading.Thread(target=load_bar)
+    text.config(text="Magic has happened!", fg="green")
+    b.focus()
+    return
 
 
 tk.mainloop()
