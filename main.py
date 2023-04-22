@@ -5,7 +5,6 @@ from Huffman import Huffman
 import time
 import magic
 import threading
-from PIL import Image, ImageTk
 root = tk.Tk()
 root.title("Ultarc file archivator")
 f_name = tk.StringVar(root)
@@ -26,8 +25,42 @@ def check_file_extension(file_bytes):
         return None
 
 from RLE import RLE
-def work():
+def huff_load():
+    global huff_data
+    global data
+    global huffer
+    huff_data = huffer.archive(data)
+
+def rle_load():
+    global rle
+    global rle_data
+    global data
+    rle_data = rle.archive(data)
+def unarchiver():
+    global data
+    global file_name
+    global name
     global finished
+    signature = data[:7]
+    unarchived = b''
+    if signature == b'ACEARCH':
+        unarchived = huffer.unarchive(name)
+    elif signature == b'ACEARCR':
+        unarchived = rle.unarchive(name)
+    else:
+        print("What da heeeel")
+    extension = check_file_extension(unarchived)
+    with open(f"{file_name}{extension}", "wb") as f:
+        f.write(unarchived)
+    finished = True
+def callback():
+    global rle
+    global data
+    global finished
+    global huffer
+    global finished
+    global file_name
+    global name
     finished = False
     if f_name.get() != '':
         file_name = f_name.get()
@@ -35,26 +68,22 @@ def work():
         file_name = "output"
     name = fd.askopenfilename()
     text.pack()
+    t1.start()
     with open(name, 'rb') as data:
         data = data.read()
         huffer = Huffman()
         rle = RLE()
         if name[-6::] == "ultarc":
-            signature = data[:7]
-            unarchived = b''
-            if signature == b'ACEARCH':
-                unarchived = huffer.unarchive(name)
-            elif signature == b'ACEARCR':
-                unarchived = rle.unarchive(name)
-            else:
-                print("What da heeeel")
-            extension = check_file_extension(unarchived)
-            with open (f"{file_name}{extension}", "wb") as f:
-                f.write(unarchived)
-            finished = True
+            t2 = threading.Thread(target=unarchiver)
+            t2.start()
         else:
-            huff_data = huffer.archive(data)
-            rle_data = rle.archive(data)
+            huffman_thread = threading.Thread(target=huff_load)
+            rle_thread = threading.Thread(target=rle_load)
+            huffman_thread.start()
+            rle_thread.start()
+            huffman_thread.join()
+            rle_thread.join()
+
             with open(f"{file_name}.ultarc", "wb") as f:
                 f.write(b'ACEARC')
                 if len(huff_data) < len(rle_data):
@@ -64,12 +93,6 @@ def work():
                     f.write(b'R')
                     f.write(rle_data)
             finished = True
-def callback():
-    global finished
-    finished = False
-    t2 = threading.Thread(target=work)
-    t1.start()
-    t2.start()
 
 
 def on_entry_click(event):
