@@ -47,7 +47,7 @@ class RLE():
                 data += struct.pack("<B", rle[i][1])
                 data += rle[i][0]
             ans = b''
-            ans += struct.pack("<i", len(data))
+            ans += struct.pack("<i", len(rle))
             ans += data
             return ans
         else:
