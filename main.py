@@ -95,6 +95,7 @@ def callback():
     global finished
     global file_name
     global name
+    global archivation
     error = False
     finished = False
     text.pack()
@@ -104,6 +105,7 @@ def callback():
         huffer = Huffman()
         rle = RLE()
         if name[-6::] == "ultarc":
+            archivation = False
             if f_name.get() != 'Optionally enter the output file name here' and f_name.get():
                 file_name = f_name.get()
             else:
@@ -115,6 +117,7 @@ def callback():
             if not t2.is_alive():
                 t2.start()
         else:
+            archivation = True
             if f_name.get() != 'Optionally enter the output file name here' and f_name.get():
                 file_name = f_name.get()
             else:
@@ -135,7 +138,7 @@ def callback():
                 f.write(b'ACEARC')
                 if len(huff_data) < len(data) or len(rle_data) < len(data):
                     if len(huff_data) < len(rle_data):
-                        compress_rate = (len(data)-len(huff_data))/len(data)*100
+                        compress_rate = int((len(data)-len(huff_data))/len(data)*100)
                         f.write(b'H')
                         f.write(huff_data)
                     else:
@@ -178,6 +181,7 @@ list = ["       ", ".      ", "..     ", "...    ", "....   ", ".....  ", ".....
 
 def load_bar():
     global compress_rate
+    global archivation
     k = 0
     while not finished:
         k += 1
@@ -187,10 +191,11 @@ def load_bar():
     if not error:
         text.config(text="Magic has happened!", fg="green")
         time.sleep(0.01)
-        if compress_rate > 0:
-            messagebox.showinfo('Archivation results',f'The file has been successfully compressed by {compress_rate} percent!')
-        else:
-            messagebox.showwarning('Archivation results', "The archivator wasn't able to reduce the file size, the archivated size remains the same.")
+        if archivation:
+            if compress_rate > 0:
+                messagebox.showinfo('Archivation results',f'The file has been successfully compressed by {compress_rate} percent!')
+            else:
+                messagebox.showwarning('Archivation results', "The archivator wasn't able to reduce the file size, the archivated size remains the same.")
     else:
         text.config(text="Error", fg="red")
     b.focus()
