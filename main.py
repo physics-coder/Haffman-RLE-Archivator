@@ -3,6 +3,7 @@ import time
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog as fd
+from tkinter import messagebox
 
 import magic
 
@@ -59,12 +60,19 @@ def unarchiver():
         unarchived = huffer.unarchive(name)
     elif signature == b'ACEARCR':
         unarchived = rle.unarchive(name)
+    elif signature == b'ACEARCF':
+        with open(name, "rb") as f:
+            f.read(7)
+            unarchived = f.read()
     else:
-        print("What da heeeel")
+        print("whaaat")
     extension = check_file_extension(unarchived)
-    with open(f"{file_name}{extension}", "wb") as f:
-        f.write(unarchived)
-    finished = True
+    if extension:
+        with open(f"{file_name}{extension}", "wb") as f:
+            f.write(unarchived)
+        finished = True
+    else:
+        print("whaaat")
     return
 
 def file_selector():
@@ -88,7 +96,7 @@ def callback():
         huffer = Huffman()
         rle = RLE()
         if name[-6::] == "ultarc":
-            if f_name.get() != 'Optionally enter the output file name here':
+            if f_name.get() != 'Optionally enter the output file name here' and f_name.get():
                 file_name = f_name.get()
             else:
                 if '.' in name:
@@ -99,7 +107,7 @@ def callback():
             if not t2.is_alive():
                 t2.start()
         else:
-            if f_name.get() != 'Optionally enter the output file name here':
+            if f_name.get() != 'Optionally enter the output file name here' and f_name.get():
                 file_name = f_name.get()
             else:
                 if '.' in name:
@@ -117,17 +125,21 @@ def callback():
 
             with open(f"{file_name}.ultarc", "wb") as f:
                 f.write(b'ACEARC')
-                if len(huff_data) < len(rle_data):
-                    f.write(b'H')
-                    f.write(huff_data)
+                if len(huff_data) < len(data) or len(rle_data) < len(data):
+                    if len(huff_data) < len(rle_data):
+                        f.write(b'H')
+                        f.write(huff_data)
+                    else:
+                        f.write(b'R')
+                        f.write(rle_data)
                 else:
-                    f.write(b'R')
-                    f.write(rle_data)
+                    f.write(b'F')
+                    f.write(data)
             finished = True
 
 
 def on_entry_click(event):
-    if textBox.get() == 'output':
+    if textBox.get() == 'Optionally enter the output file name here':
         textBox.delete(0, 'end')
         textBox.config(font=('Arial', 16))
 
