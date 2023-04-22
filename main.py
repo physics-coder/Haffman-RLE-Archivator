@@ -20,7 +20,7 @@ def check_file_extension(file_bytes):
         return '.png'
     elif 'text' in file_type:
         return '.txt'
-    elif 'MP3' in file_type:
+    elif 'Audio file' in file_type:
         return '.mp3'
     else:
         return None
@@ -34,6 +34,7 @@ def work():
     else:
         file_name = "output"
     name = fd.askopenfilename()
+    text.pack()
     with open(name, 'rb') as data:
         data = data.read()
         huffer = Huffman()
@@ -67,7 +68,6 @@ def callback():
     global finished
     finished = False
     t2 = threading.Thread(target=work)
-    text.pack()
     t1.start()
     t2.start()
 
