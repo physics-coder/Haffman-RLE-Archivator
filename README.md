@@ -1,7 +1,7 @@
 # Haffman-RLE-Archivator
 
 ## General Information
-The "Ultarc" archivator archivates and unarchivates files using the Huffman and RLE algorithms.
+The "Ultarc" archivater archivates and unarchivates files using the Huffman and RLE algorithms.
 It uses the ".ultarc" file extension for archivation.
 The signature of ".ultarc" files is ACEARC.
 
