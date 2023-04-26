@@ -1,8 +1,5 @@
-import binascii
-import heapq
 import pickle
 import struct
-from collections import defaultdict
 
 # Node tree for the Huffman algorithm
 
