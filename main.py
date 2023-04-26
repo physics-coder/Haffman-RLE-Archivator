@@ -1,3 +1,4 @@
+from RLE import RLE
 import threading
 import time
 import tkinter as tk
@@ -13,6 +14,8 @@ root = tk.Tk()
 root.title("Ultarc file archivator")
 f_name = tk.StringVar(root)
 
+# Function for checking the file extension of archived files
+
 
 def check_file_extension(file_bytes):
     file_type = magic.from_buffer(file_bytes)
@@ -27,8 +30,7 @@ def check_file_extension(file_bytes):
     else:
         return None
 
-
-from RLE import RLE
+# Function for archiving files using the Huffman algorithm
 
 
 def huff_load():
@@ -38,6 +40,8 @@ def huff_load():
     huff_data = huffer.archive(data)
     return
 
+# Function for archiving files using the RLE algorithm
+
 
 def rle_load():
     global rle
@@ -45,6 +49,8 @@ def rle_load():
     global data
     rle_data = rle.archive(data)
     return
+
+# Function for unarchiving files
 
 
 def unarchiver():
@@ -64,7 +70,9 @@ def unarchiver():
             f.read(7)
             unarchived = f.read()
     else:
-        messagebox.showerror("Corrupted archive file", "The archive file has been corrupted. Please select a valid file.")
+        messagebox.showerror(
+            "Corrupted archive file",
+            "The archive file has been corrupted. Please select a valid file.")
         finished = True
         error = True
         return
@@ -74,17 +82,27 @@ def unarchiver():
             f.write(unarchived)
         finished = True
     else:
-        messagebox.showwarning('Extension absense', 'The file archived is of an unknown extension, so it will be saved without one.')
+        messagebox.showwarning(
+            'Extension absense',
+            'The file archived is of an unknown extension, so it will be saved without one.')
         with open(file_name, "wb") as f:
             f.write(unarchived)
         finished = True
     return
+
+# Function for file selection and start button creation
+
 
 def file_selector():
     global name
     name = fd.askopenfilename()
     start_button.pack_forget()
     start_button.pack()
+
+# Main function in which the input file is archived and unarchived using
+# RLE and Huffman. When archiving the best algorithm is chosen.
+
+
 def callback():
     global error
     global compress_rate
@@ -138,11 +156,13 @@ def callback():
                 f.write(b'ACEARC')
                 if len(huff_data) < len(data) or len(rle_data) < len(data):
                     if len(huff_data) < len(rle_data):
-                        compress_rate = int((len(data)-len(huff_data))/len(data)*100)
+                        compress_rate = int(
+                            (len(data) - len(huff_data)) / len(data) * 100)
                         f.write(b'H')
                         f.write(huff_data)
                     else:
-                        compress_rate = int((len(data) - len(rle_data)) / len(data) * 100)
+                        compress_rate = int(
+                            (len(data) - len(rle_data)) / len(data) * 100)
                         f.write(b'R')
                         f.write(rle_data)
 
@@ -151,6 +171,8 @@ def callback():
                     f.write(b'F')
                     f.write(data)
             finished = True
+
+# Function for animated file entry box
 
 
 def on_entry_click(event):
@@ -163,22 +185,48 @@ text_label = tk.Label(root, text='Welcome to the "Ultarc" archivator! Click the 
                       padx=10, pady=20, anchor='center')
 text_label.pack()
 frame = Frame()
-textBox = Entry(frame, width=14, font=('Arial', 16, 'italic'), justify=CENTER, textvariable=f_name)
+textBox = Entry(
+    frame,
+    width=14,
+    font=(
+        'Arial',
+        16,
+        'italic'),
+    justify=CENTER,
+    textvariable=f_name)
 textBox.insert(0, "Optionally enter the output file name here")
 textBox.bind('<FocusIn>', on_entry_click)
 textBox.pack(side=LEFT, padx=20, expand=True, fill=BOTH)
 b = tk.Button(frame, text='Click to Open File',
-          command=file_selector, height=1)
+              command=file_selector, height=1)
 b.pack(side=RIGHT, padx=20, expand=True, fill=BOTH)
 
 frame.pack(expand=True, fill=X, pady=10)
 start_button = tk.Button(root, text='Start magic!',
-          command=callback, height=1, fg="purple")
+                         command=callback, height=1, fg="purple")
 
-text = Label(root, text="Loading", font=('Arial', 20, 'bold'), fg="yellow", pady=20)
-list = ["       ", ".      ", "..     ", "...    ", "....   ", ".....  ", "...... ", "......."]
+text = Label(
+    root,
+    text="Loading",
+    font=(
+        'Arial',
+        20,
+        'bold'),
+    fg="yellow",
+    pady=20)
+list = [
+    "       ",
+    ".      ",
+    "..     ",
+    "...    ",
+    "....   ",
+    ".....  ",
+    "...... ",
+    "......."]
 
 
+# Function to create loading animation, while archivation or unarchivation
+# is happening
 def load_bar():
     global compress_rate
     global archivation
@@ -193,9 +241,13 @@ def load_bar():
         time.sleep(0.01)
         if archivation:
             if compress_rate > 0:
-                messagebox.showinfo('Archivation results',f'The file has been successfully compressed by {compress_rate} percent!')
+                messagebox.showinfo(
+                    'Archivation results',
+                    f'The file has been successfully compressed by {compress_rate} percent!')
             else:
-                messagebox.showwarning('Archivation results', "The archivator wasn't able to reduce the file size, the archivated size remains the same.")
+                messagebox.showwarning(
+                    'Archivation results',
+                    "The archivator wasn't able to reduce the file size, the archivated size remains the same.")
     else:
         text.config(text="Error", fg="red")
     b.focus()
